@@ -1,0 +1,407 @@
+use crate::client::app::{App, Focus, JumpMode, WorkspaceView};
+use crate::theme::ThemeColors;
+use ratatui::{
+    layout::Rect,
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
+    widgets::{Block, Borders, Paragraph},
+    Frame,
+};
+
+pub(super) fn draw_topbar(f: &mut Frame, app: &mut App, area: Rect, t: &ThemeColors) {
+    let active = app.focus == Focus::Topbar;
+    f.render_widget(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(super::border_type(t, active))
+            .border_style(super::border_style(t, active))
+            .style(Style::default().bg(t.surface())),
+        area,
+    );
+
+    let task = &app.offices[app.current_office].desks[app.selected()];
+    let inner_w = area.width.saturating_sub(2);
+    let inner = Rect {
+        x: area.x + 1,
+        y: area.y + 1,
+        width: inner_w,
+        height: 1,
+    };
+
+    let at = task.active_tab;
+    if at < app.tab_scroll {
+        app.tab_scroll = at;
+    }
+    let plus = "  ＋  ";
+    let plus_w = super::display_width(plus);
+    let tab_widths: Vec<u16> = task
+        .tabs
+        .iter()
+        .map(|tb| super::display_width(&format!("  {}  ", tb.name)) + 1)
+        .collect();
+    loop {
+        let mut used = plus_w;
+        let mut last_visible = app.tab_scroll;
+        for (i, w) in tab_widths
+            .iter()
+            .enumerate()
+            .take(task.tabs.len())
+            .skip(app.tab_scroll)
+        {
+            if used + *w > inner_w {
+                break;
+            }
+            used += *w;
+            last_visible = i;
+        }
+        if at <= last_visible || app.tab_scroll >= at {
+            break;
+        }
+        app.tab_scroll += 1;
+    }
+
+    app.tab_areas.clear();
+    app.tab_area_tab_indices.clear();
+    let mut x = inner.x;
+    let mut spans: Vec<Span> = vec![];
+
+    if app.tab_scroll > 0 {
+        spans.push(Span::styled("‹ ", Style::default().fg(t.accent2())));
+        x += 2;
+    }
+
+    let mut available = inner_w.saturating_sub(plus_w + if app.tab_scroll > 0 { 2 } else { 0 });
+    for i in app.tab_scroll..task.tabs.len() {
+        let tab = &task.tabs[i];
+        let is_current_tab = i == task.active_tab;
+        let is_active_tab = app.active_tabs.contains(&tab.id);
+
+        // Only show spinner if: active AND not current tab
+        let show_spinner = is_active_tab && !is_current_tab;
+
+        let label = if show_spinner {
+            format!("  {} {}  ", tab.name, app.get_spinner())
+        } else {
+            format!("  {}  ", tab.name)
+        };
+        let w = super::display_width(&label);
+        if w + 1 > available {
+            break;
+        }
+        let style = if is_current_tab {
+            if t.follow_terminal {
+                Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED)
+            } else {
+                Style::default()
+                    .fg(t.bg())
+                    .bg(t.accent())
+                    .add_modifier(Modifier::BOLD)
+            }
+        } else if t.follow_terminal {
+            if is_active_tab {
+                Style::default().add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().add_modifier(Modifier::DIM)
+            }
+        } else {
+            Style::default().fg(t.fg_dim()).bg(t.surface())
+        };
+        spans.push(Span::styled(label, style));
+        spans.push(Span::raw(" "));
+        app.tab_areas.push(Rect {
+            x,
+            y: inner.y,
+            width: w,
+            height: 1,
+        });
+        app.tab_area_tab_indices.push(i);
+        x += w + 1;
+        available = available.saturating_sub(w + 1);
+    }
+
+    let last_rendered = app.tab_scroll + app.tab_areas.len();
+    if last_rendered < task.tabs.len() {
+        spans.push(Span::styled(" ›", Style::default().fg(t.accent2())));
+    }
+
+    let plus_style = if t.follow_terminal {
+        Style::default().add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+    } else {
+        Style::default().fg(t.accent2())
+    };
+    spans.push(Span::styled(plus, plus_style));
+    app.new_tab_area = Rect {
+        x,
+        y: inner.y,
+        width: plus_w,
+        height: 1,
+    };
+
+    let daemon_status = if app.daemon_connected {
+        " ✓ "
+    } else if app.spinner_frame.is_multiple_of(2) {
+        " · "
+    } else {
+        " • "
+    };
+    let status_w = daemon_status.len() as u16;
+    let status_x = inner.x + inner_w - status_w;
+    if status_x > x + plus_w {
+        let daemon_style = if t.follow_terminal {
+            Style::default().add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(t.accent2())
+        };
+        f.render_widget(
+            Paragraph::new(Span::styled(daemon_status, daemon_style)),
+            Rect {
+                x: status_x,
+                y: inner.y,
+                width: status_w,
+                height: 1,
+            },
+        );
+    }
+
+    f.render_widget(Paragraph::new(Line::from(spans)), inner);
+}
+
+pub(super) fn draw_statusbar(f: &mut Frame, app: &mut App, area: Rect, t: &ThemeColors) {
+    let focus_name = match app.focus {
+        Focus::Sidebar => "Sidebar",
+        Focus::Topbar => "Topbar",
+        Focus::Content => "Content",
+    };
+    let keys: &[(&str, &str)] = if app.copy_mode {
+        &[
+            ("↑/k", "Scroll Up"),
+            ("↓/j", "Scroll Down"),
+            ("PgUp/PgDn", "Fast Scroll"),
+            ("g/G", "Bottom/Top"),
+            ("Esc/q", "Exit Copy"),
+        ]
+    } else if app.desk_delete_confirm.is_some() {
+        &[("y/Enter", "Yes"), ("n/Esc", "No")]
+    } else if app.rename.is_some() {
+        &[("Enter", "Confirm"), ("Esc", "Cancel")]
+    } else if let JumpMode::Active = app.jump_mode {
+        // In Jump Mode, always show explicit focus targets as separate keys.
+        match app.focus {
+            Focus::Content => &[
+                ("a-z/A-Z/0-9", "Jump"),
+                ("c", "Copy Mode"),
+                ("x", "Restart Terminal"),
+                ("←", "Focus Sidebar"),
+                ("↑", "Focus Tabbar"),
+                ("q", "Quit"),
+                ("Esc", "Cancel"),
+            ],
+            Focus::Topbar => &[
+                ("a-z/A-Z/0-9", "Jump"),
+                ("r", "Rename"),
+                ("←", "Focus Sidebar"),
+                ("↓", "Focus Content"),
+                ("q", "Quit"),
+                ("Esc", "Cancel"),
+            ],
+            Focus::Sidebar => &[
+                ("a-z/A-Z/0-9", "Jump"),
+                ("r", "Rename"),
+                ("→", "Focus Content"),
+                ("↑", "Focus Tabbar"),
+                ("Esc", "Cancel"),
+            ],
+        }
+    } else {
+        match app.focus {
+            Focus::Sidebar => &[
+                ("↑↓", "Navigate"),
+                ("c/a/l/t/d", "Views"),
+                ("o", "Office"),
+                ("n", "New Desk"),
+                ("x", "Close"),
+                ("r", "Rename"),
+                ("s", "Settings"),
+                ("Esc", "Jump"),
+                ("q", "Quit"),
+            ],
+            Focus::Topbar => &[
+                ("←→", "Switch Tab"),
+                ("c/a/l/t/d", "Views"),
+                ("n", "New Tab"),
+                ("x", "Close Tab"),
+                ("r", "Rename"),
+                ("Enter", "Focus"),
+                ("Esc", "Jump"),
+                ("q", "Quit"),
+            ],
+            Focus::Content => {
+                if app.workspace_view == WorkspaceView::Terminal {
+                    &[("Esc·Esc", "Jump"), ("keys→shell", "")]
+                } else if app.workspace_view == WorkspaceView::Chat {
+                    &[("↑↓", "Select Chat"), ("Esc", "Jump")]
+                } else if app.workspace_view == WorkspaceView::Docs {
+                    &[("↑↓", "Select Doc"), ("Esc", "Jump")]
+                } else {
+                    &[("Esc", "Jump")]
+                }
+            }
+        }
+    };
+    let focus_badge_style = if t.follow_terminal {
+        Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED)
+    } else {
+        Style::default()
+            .fg(t.bg())
+            .bg(t.accent())
+            .add_modifier(Modifier::BOLD)
+    };
+    let section_style = if t.follow_terminal {
+        Style::default().add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(t.accent2())
+    };
+    let active_section_style = if t.follow_terminal {
+        Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED)
+    } else {
+        Style::default()
+            .fg(t.bg())
+            .bg(t.accent2())
+            .add_modifier(Modifier::BOLD)
+    };
+    let section = |view: WorkspaceView, label: &'static str, app: &App| {
+        if app.workspace_view == view {
+            Span::styled(format!(" {} ", label), active_section_style)
+        } else {
+            Span::styled(format!(" {} ", label), section_style)
+        }
+    };
+
+    let docs_label = " Docs ";
+    let docs_w = docs_label.len() as u16;
+    let left_area = Rect {
+        x: area.x,
+        y: area.y,
+        width: area.width.saturating_sub(docs_w),
+        height: area.height,
+    };
+    let docs_area = Rect {
+        x: area.x + area.width.saturating_sub(docs_w),
+        y: area.y,
+        width: docs_w.min(area.width),
+        height: area.height,
+    };
+    app.footer_docs_area = docs_area;
+
+    let mut cursor_x = left_area.x + 1; // initial leading space
+    let chat_w = " Chat ".len() as u16;
+    app.footer_chat_area = Rect {
+        x: cursor_x,
+        y: left_area.y,
+        width: chat_w,
+        height: left_area.height,
+    };
+    cursor_x += chat_w + 1;
+    let alerts_w = " Alerts ".len() as u16;
+    app.footer_alerts_area = Rect {
+        x: cursor_x,
+        y: left_area.y,
+        width: alerts_w,
+        height: left_area.height,
+    };
+    cursor_x += alerts_w + 1;
+    let logs_w = " Logs ".len() as u16;
+    app.footer_logs_area = Rect {
+        x: cursor_x,
+        y: left_area.y,
+        width: logs_w,
+        height: left_area.height,
+    };
+    cursor_x += logs_w + 1;
+    let terminal_w = " Terminal ".len() as u16;
+    app.footer_terminal_area = Rect {
+        x: cursor_x,
+        y: left_area.y,
+        width: terminal_w,
+        height: left_area.height,
+    };
+    let mut spans: Vec<Span> = vec![
+        Span::raw(" "),
+        section(WorkspaceView::Chat, "Chat", app),
+        Span::raw(" "),
+        section(WorkspaceView::Alerts, "Alerts", app),
+        Span::raw(" "),
+        section(WorkspaceView::Logs, "Logs", app),
+        Span::raw(" "),
+        section(WorkspaceView::Terminal, "Terminal", app),
+        Span::raw("  "),
+        Span::styled(format!(" Focus:{focus_name} "), focus_badge_style),
+        Span::raw("  "),
+    ];
+    for (key, desc) in keys {
+        let key_style = if t.follow_terminal {
+            Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED)
+        } else {
+            Style::default()
+                .fg(t.bg())
+                .bg(t.accent())
+                .add_modifier(Modifier::BOLD)
+        };
+        spans.push(Span::styled(format!(" {key} "), key_style));
+        if !desc.is_empty() {
+            let desc_style = if t.follow_terminal {
+                Style::default().add_modifier(Modifier::DIM)
+            } else {
+                Style::default().fg(t.fg_dim())
+            };
+            spans.push(Span::styled(format!(" {desc}  "), desc_style));
+        } else {
+            spans.push(Span::raw("  "));
+        }
+    }
+    let hint_style = if t.follow_terminal {
+        Style::default().add_modifier(Modifier::DIM)
+    } else {
+        Style::default().fg(t.fg_dim())
+    };
+    spans.push(Span::styled(" F1 Chat F2 Alerts F3 Logs F4 Terminal F5 Docs ", hint_style));
+    f.render_widget(
+        Paragraph::new(Line::from(spans)).style(Style::default().bg(t.surface())),
+        left_area,
+    );
+
+    let docs_style = if app.workspace_view == WorkspaceView::Docs {
+        active_section_style
+    } else if t.follow_terminal {
+        Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED)
+    } else {
+        Style::default().fg(t.bg()).bg(t.accent2()).add_modifier(Modifier::BOLD)
+    };
+    f.render_widget(
+        Paragraph::new(Span::styled(docs_label, docs_style)).style(Style::default().bg(t.surface())),
+        docs_area,
+    );
+
+    // Update available notice on the right
+    if let Some(ref ver) = app.update_available {
+        let notice = format!(" ↑ Update available: {} ", ver);
+        let w = notice.len() as u16;
+        if w < area.width {
+            f.render_widget(
+                Paragraph::new(Span::styled(
+                    notice,
+                    Style::default()
+                        .fg(Color::Black)
+                        .bg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                )),
+                Rect {
+                    x: left_area.x + left_area.width.saturating_sub(w),
+                    y: left_area.y,
+                    width: w.min(left_area.width),
+                    height: 1,
+                },
+            );
+        }
+    }
+}

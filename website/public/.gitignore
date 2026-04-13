@@ -1,0 +1,7 @@
+# Generated during website build/deploy
+install.sh
+version.txt
+logo.svg
+*.png
+*.gif
+!logo.png
