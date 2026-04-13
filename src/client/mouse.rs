@@ -1,7 +1,7 @@
 use crossterm::event::{MouseButton, MouseEventKind};
 use ratatui::layout::Rect;
 
-use super::app::{App, Focus, WorkspaceView};
+use super::app::{App, Focus};
 
 pub fn handle_mouse(app: &mut App, me: crossterm::event::MouseEvent) {
     let (col, row) = (me.column, me.row);
@@ -12,7 +12,7 @@ pub fn handle_mouse(app: &mut App, me: crossterm::event::MouseEvent) {
     // Mouse handling on terminal content area.
     // If the PTY app enabled mouse reporting, pass events through.
     // Otherwise, use wheel events for local terminal scrollback.
-    if app.workspace_view == WorkspaceView::Terminal && in_rect(col, row, app.content_area) {
+    if in_rect(col, row, app.content_area) {
         if !matches!(app.focus, Focus::Content) {
             app.focus = Focus::Content;
         }
@@ -57,49 +57,6 @@ pub fn handle_mouse(app: &mut App, me: crossterm::event::MouseEvent) {
 
     match me.kind {
         MouseEventKind::Down(MouseButton::Left) => {
-            if in_rect(col, row, app.footer_chat_area) {
-                app.set_workspace_view(WorkspaceView::Chat);
-                app.focus = Focus::Content;
-                app.last_click = Some((col, row, std::time::Instant::now()));
-                return;
-            }
-            if in_rect(col, row, app.footer_alerts_area) {
-                app.set_workspace_view(WorkspaceView::Alerts);
-                app.focus = Focus::Content;
-                app.last_click = Some((col, row, std::time::Instant::now()));
-                return;
-            }
-            if in_rect(col, row, app.footer_logs_area) {
-                app.set_workspace_view(WorkspaceView::Logs);
-                app.focus = Focus::Content;
-                app.last_click = Some((col, row, std::time::Instant::now()));
-                return;
-            }
-            if in_rect(col, row, app.footer_terminal_area) {
-                app.set_workspace_view(WorkspaceView::Terminal);
-                app.focus = Focus::Content;
-                app.last_click = Some((col, row, std::time::Instant::now()));
-                return;
-            }
-            if in_rect(col, row, app.footer_docs_area) {
-                app.set_workspace_view(WorkspaceView::Docs);
-                app.focus = Focus::Content;
-                app.last_click = Some((col, row, std::time::Instant::now()));
-                return;
-            }
-
-            if app.workspace_view == WorkspaceView::Docs && in_rect(col, row, app.kb_list_area) {
-                if row > app.kb_list_area.y {
-                    let idx = (row - app.kb_list_area.y - 1) as usize;
-                    if idx < app.kb_docs.len() {
-                        app.kb_selected = idx;
-                    }
-                }
-                app.focus = Focus::Content;
-                app.last_click = Some((col, row, std::time::Instant::now()));
-                return;
-            }
-
             let mut handled = false;
 
             // Office selector

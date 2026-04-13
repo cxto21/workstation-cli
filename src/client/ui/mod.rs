@@ -1,4 +1,4 @@
-use crate::client::app::{App, JumpMode, WorkspaceView};
+use crate::client::app::{App, JumpMode};
 use crate::theme::ThemeColors;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
@@ -85,52 +85,29 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         app.term_cols = tc;
         terminal::draw_terminal(f, app, root[0], &t);
     } else {
-        if app.workspace_view == WorkspaceView::Chat {
-            let main_rows = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Length(3), Constraint::Min(0)])
-                .split(root[0]);
+        let cols = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Length(24), Constraint::Min(0)])
+            .split(root[0]);
 
-            app.sidebar_area = ratatui::layout::Rect::default();
-            app.sidebar_list_area = ratatui::layout::Rect::default();
-            app.new_desk_area = ratatui::layout::Rect::default();
-            app.topbar_area = main_rows[0];
-            app.content_area = main_rows[1];
-            app.tab_areas.clear();
-            app.tab_area_tab_indices.clear();
-            app.new_tab_area = ratatui::layout::Rect::default();
+        let main_rows = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Length(3), Constraint::Min(0)])
+            .split(cols[1]);
 
-            topbar::draw_topbar(f, app, main_rows[0], &t);
-            workstation::draw_workspace(f, app, main_rows[1], &t);
-        } else {
-            let cols = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints([Constraint::Length(24), Constraint::Min(0)])
-                .split(root[0]);
+        let tr = main_rows[1].height.saturating_sub(2);
+        let tc = main_rows[1].width.saturating_sub(2);
+        // Update dimensions for spawn (no resize triggered here)
+        app.term_rows = tr;
+        app.term_cols = tc;
 
-            let main_rows = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Length(3), Constraint::Min(0)])
-                .split(cols[1]);
+        app.sidebar_area = cols[0];
+        app.topbar_area = main_rows[0];
+        app.content_area = main_rows[1];
 
-            let tr = main_rows[1].height.saturating_sub(2);
-            let tc = main_rows[1].width.saturating_sub(2);
-            // Update dimensions for spawn (no resize triggered here)
-            app.term_rows = tr;
-            app.term_cols = tc;
-
-            app.sidebar_area = cols[0];
-            app.topbar_area = main_rows[0];
-            app.content_area = main_rows[1];
-
-            sidebar::draw_sidebar(f, app, cols[0], &t);
-            topbar::draw_topbar(f, app, main_rows[0], &t);
-            if app.workspace_view == WorkspaceView::Terminal {
-                terminal::draw_terminal(f, app, main_rows[1], &t);
-            } else {
-                workstation::draw_workspace(f, app, main_rows[1], &t);
-            }
-        }
+        sidebar::draw_sidebar(f, app, cols[0], &t);
+        topbar::draw_topbar(f, app, main_rows[0], &t);
+        terminal::draw_terminal(f, app, main_rows[1], &t);
     }
     topbar::draw_statusbar(f, app, root[1], &t);
 

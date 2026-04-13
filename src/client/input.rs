@@ -1,5 +1,5 @@
 use crate::client::app::{
-    App, Focus, JumpMode, OfficeDeleteConfirm, RenameState, RenameTarget, WorkspaceView,
+    App, Focus, JumpMode, OfficeDeleteConfirm, RenameState, RenameTarget,
     CONTENT_ESC_DOUBLE_PRESS_WINDOW_MS,
 };
 use crossterm::{
@@ -20,31 +20,6 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
     }
     let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
     let alt = key.modifiers.contains(KeyModifiers::ALT);
-
-    // Global view switcher for Workstation layout.
-    match key.code {
-        KeyCode::F(1) => {
-            app.set_workspace_view(WorkspaceView::Chat);
-            return false;
-        }
-        KeyCode::F(2) => {
-            app.set_workspace_view(WorkspaceView::Alerts);
-            return false;
-        }
-        KeyCode::F(3) => {
-            app.set_workspace_view(WorkspaceView::Logs);
-            return false;
-        }
-        KeyCode::F(4) => {
-            app.set_workspace_view(WorkspaceView::Terminal);
-            return false;
-        }
-        KeyCode::F(5) => {
-            app.set_workspace_view(WorkspaceView::Docs);
-            return false;
-        }
-        _ => {}
-    }
 
     // Emergency exit when daemon connection is unhealthy.
     // This provides a reliable way out when the top-right status is blinking/disconnected.
@@ -197,9 +172,7 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
     if let JumpMode::Active = app.jump_mode {
         match key.code {
             KeyCode::Char('q' | 'Q') => return true, // Quit in Jump Mode
-            KeyCode::Char('c')
-                if app.focus == Focus::Content && app.workspace_view == WorkspaceView::Terminal =>
-            {
+            KeyCode::Char('c') if app.focus == Focus::Content => {
                 app.copy_mode = true;
                 app.jump_mode = JumpMode::None;
             }
@@ -324,10 +297,7 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
     // ESC before a vim command, etc.) must arrive at the PTY in order.
     // Note: the timer-based flush (main.rs) uses flush_pending_content_esc()
     // which has a 300ms guard; here we always forward immediately.
-    if app.focus == Focus::Content
-        && app.workspace_view == WorkspaceView::Terminal
-        && !matches!(key.code, KeyCode::Esc)
-    {
+    if app.focus == Focus::Content && !matches!(key.code, KeyCode::Esc) {
         if app.last_content_esc.take().is_some() {
             app.pty_write(b"\x1b");
         }
@@ -335,10 +305,6 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
 
     if key.code == KeyCode::Esc {
         if app.focus == Focus::Content {
-            if app.workspace_view != WorkspaceView::Terminal {
-                app.jump_mode = JumpMode::Active;
-                return false;
-            }
             // In Content focus: double-ESC enters Jump Mode.
             // Single ESC is delayed briefly, then forwarded to shell.
             let now = Instant::now();
@@ -383,11 +349,6 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
     match app.focus {
         Focus::Sidebar => match key.code {
             KeyCode::Char('q') => return true,
-            KeyCode::Char('c') => app.set_workspace_view(WorkspaceView::Chat),
-            KeyCode::Char('a') => app.set_workspace_view(WorkspaceView::Alerts),
-            KeyCode::Char('l') => app.set_workspace_view(WorkspaceView::Logs),
-            KeyCode::Char('t') => app.set_workspace_view(WorkspaceView::Terminal),
-            KeyCode::Char('d') => app.set_workspace_view(WorkspaceView::Docs),
             KeyCode::Char('o') => {
                 app.office_selector.active = true;
                 app.office_selector
@@ -413,11 +374,6 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
         },
         Focus::Topbar => match key.code {
             KeyCode::Char('q') => return true,
-            KeyCode::Char('c') => app.set_workspace_view(WorkspaceView::Chat),
-            KeyCode::Char('a') => app.set_workspace_view(WorkspaceView::Alerts),
-            KeyCode::Char('l') => app.set_workspace_view(WorkspaceView::Logs),
-            KeyCode::Char('t') => app.set_workspace_view(WorkspaceView::Terminal),
-            KeyCode::Char('d') => app.set_workspace_view(WorkspaceView::Docs),
             KeyCode::Left => {
                 let i = app.selected();
                 let at = app.offices[app.current_office].desks[i].active_tab;
@@ -456,22 +412,6 @@ pub fn handle_key(app: &mut App, key: crossterm::event::KeyEvent) -> bool {
             _ => {}
         },
         Focus::Content => {
-            if app.workspace_view != WorkspaceView::Terminal {
-                if app.workspace_view == WorkspaceView::Chat {
-                    match key.code {
-                        KeyCode::Up => app.select_prev_chat(),
-                        KeyCode::Down => app.select_next_chat(),
-                        _ => {}
-                    }
-                } else if app.workspace_view == WorkspaceView::Docs {
-                    match key.code {
-                        KeyCode::Up => app.select_prev_doc(),
-                        KeyCode::Down => app.select_next_doc(),
-                        _ => {}
-                    }
-                }
-                return false;
-            }
             let shift = key
                 .modifiers
                 .contains(crossterm::event::KeyModifiers::SHIFT);

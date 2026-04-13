@@ -1,4 +1,4 @@
-use crate::client::app::{App, Focus, JumpMode, WorkspaceView};
+use crate::client::app::{App, Focus, JumpMode};
 use crate::theme::ThemeColors;
 use ratatui::{
     layout::Rect,
@@ -216,7 +216,6 @@ pub(super) fn draw_statusbar(f: &mut Frame, app: &mut App, area: Rect, t: &Theme
         match app.focus {
             Focus::Sidebar => &[
                 ("↑↓", "Navigate"),
-                ("c/a/l/t/d", "Views"),
                 ("o", "Office"),
                 ("n", "New Desk"),
                 ("x", "Close"),
@@ -227,7 +226,6 @@ pub(super) fn draw_statusbar(f: &mut Frame, app: &mut App, area: Rect, t: &Theme
             ],
             Focus::Topbar => &[
                 ("←→", "Switch Tab"),
-                ("c/a/l/t/d", "Views"),
                 ("n", "New Tab"),
                 ("x", "Close Tab"),
                 ("r", "Rename"),
@@ -235,17 +233,7 @@ pub(super) fn draw_statusbar(f: &mut Frame, app: &mut App, area: Rect, t: &Theme
                 ("Esc", "Jump"),
                 ("q", "Quit"),
             ],
-            Focus::Content => {
-                if app.workspace_view == WorkspaceView::Terminal {
-                    &[("Esc·Esc", "Jump"), ("keys→shell", "")]
-                } else if app.workspace_view == WorkspaceView::Chat {
-                    &[("↑↓", "Select Chat"), ("Esc", "Jump")]
-                } else if app.workspace_view == WorkspaceView::Docs {
-                    &[("↑↓", "Select Doc"), ("Esc", "Jump")]
-                } else {
-                    &[("Esc", "Jump")]
-                }
-            }
+            Focus::Content => &[("Esc·Esc", "Jump"), ("keys→shell", "")],
         }
     };
     let focus_badge_style = if t.follow_terminal {
@@ -256,84 +244,14 @@ pub(super) fn draw_statusbar(f: &mut Frame, app: &mut App, area: Rect, t: &Theme
             .bg(t.accent())
             .add_modifier(Modifier::BOLD)
     };
-    let section_style = if t.follow_terminal {
-        Style::default().add_modifier(Modifier::BOLD)
-    } else {
-        Style::default().fg(t.accent2())
-    };
-    let active_section_style = if t.follow_terminal {
-        Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED)
-    } else {
-        Style::default()
-            .fg(t.bg())
-            .bg(t.accent2())
-            .add_modifier(Modifier::BOLD)
-    };
-    let section = |view: WorkspaceView, label: &'static str, app: &App| {
-        if app.workspace_view == view {
-            Span::styled(format!(" {} ", label), active_section_style)
-        } else {
-            Span::styled(format!(" {} ", label), section_style)
-        }
-    };
+    app.footer_chat_area = Rect::default();
+    app.footer_alerts_area = Rect::default();
+    app.footer_logs_area = Rect::default();
+    app.footer_terminal_area = Rect::default();
+    app.footer_docs_area = Rect::default();
 
-    let docs_label = " Docs ";
-    let docs_w = docs_label.len() as u16;
-    let left_area = Rect {
-        x: area.x,
-        y: area.y,
-        width: area.width.saturating_sub(docs_w),
-        height: area.height,
-    };
-    let docs_area = Rect {
-        x: area.x + area.width.saturating_sub(docs_w),
-        y: area.y,
-        width: docs_w.min(area.width),
-        height: area.height,
-    };
-    app.footer_docs_area = docs_area;
-
-    let mut cursor_x = left_area.x + 1; // initial leading space
-    let chat_w = " Chat ".len() as u16;
-    app.footer_chat_area = Rect {
-        x: cursor_x,
-        y: left_area.y,
-        width: chat_w,
-        height: left_area.height,
-    };
-    cursor_x += chat_w + 1;
-    let alerts_w = " Alerts ".len() as u16;
-    app.footer_alerts_area = Rect {
-        x: cursor_x,
-        y: left_area.y,
-        width: alerts_w,
-        height: left_area.height,
-    };
-    cursor_x += alerts_w + 1;
-    let logs_w = " Logs ".len() as u16;
-    app.footer_logs_area = Rect {
-        x: cursor_x,
-        y: left_area.y,
-        width: logs_w,
-        height: left_area.height,
-    };
-    cursor_x += logs_w + 1;
-    let terminal_w = " Terminal ".len() as u16;
-    app.footer_terminal_area = Rect {
-        x: cursor_x,
-        y: left_area.y,
-        width: terminal_w,
-        height: left_area.height,
-    };
+    let left_area = area;
     let mut spans: Vec<Span> = vec![
-        Span::raw(" "),
-        section(WorkspaceView::Chat, "Chat", app),
-        Span::raw(" "),
-        section(WorkspaceView::Alerts, "Alerts", app),
-        Span::raw(" "),
-        section(WorkspaceView::Logs, "Logs", app),
-        Span::raw(" "),
-        section(WorkspaceView::Terminal, "Terminal", app),
         Span::raw("  "),
         Span::styled(format!(" Focus:{focus_name} "), focus_badge_style),
         Span::raw("  "),
@@ -364,22 +282,10 @@ pub(super) fn draw_statusbar(f: &mut Frame, app: &mut App, area: Rect, t: &Theme
     } else {
         Style::default().fg(t.fg_dim())
     };
-    spans.push(Span::styled(" F1 Chat F2 Alerts F3 Logs F4 Terminal F5 Docs ", hint_style));
+    spans.push(Span::styled(" Terminal mode ", hint_style));
     f.render_widget(
         Paragraph::new(Line::from(spans)).style(Style::default().bg(t.surface())),
         left_area,
-    );
-
-    let docs_style = if app.workspace_view == WorkspaceView::Docs {
-        active_section_style
-    } else if t.follow_terminal {
-        Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED)
-    } else {
-        Style::default().fg(t.bg()).bg(t.accent2()).add_modifier(Modifier::BOLD)
-    };
-    f.render_widget(
-        Paragraph::new(Span::styled(docs_label, docs_style)).style(Style::default().bg(t.surface())),
-        docs_area,
     );
 
     // Update available notice on the right

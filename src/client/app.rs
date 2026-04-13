@@ -612,9 +612,10 @@ impl App {
     }
 
     pub fn set_workspace_view(&mut self, view: WorkspaceView) {
-        self.workspace_view = view;
+        self.workspace_view = WorkspaceView::Terminal;
         if view != WorkspaceView::Terminal {
             self.copy_mode = false;
+            self.show_toast("Workstation views are temporarily hidden");
         }
     }
 
