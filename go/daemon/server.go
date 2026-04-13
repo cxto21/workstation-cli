@@ -28,6 +28,16 @@ func DefaultSocketPath() (string, error) {
 	if v := os.Getenv("MATO_SOCKET"); v != "" {
 		return v, nil
 	}
+	if v := os.Getenv("WORKSTATION_HOME"); v != "" {
+		return filepath.Join(v, "state", "daemon.sock"), nil
+	}
+	home, err := os.UserHomeDir()
+	if err == nil {
+		newPath := filepath.Join(home, ".workstation", "state", "daemon.sock")
+		if _, statErr := os.Stat(newPath); statErr == nil {
+			return newPath, nil
+		}
+	}
 	stateHome := os.Getenv("XDG_STATE_HOME")
 	if stateHome == "" {
 		home, err := os.UserHomeDir()

@@ -14,7 +14,7 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
 
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const VERSION_URL: &str = "https://mato.sh/version.txt";
+const VERSION_URL: &str = "https://api.github.com/repos/cxto21/workstation-cli/releases/latest";
 
 fn parse_semver_like(input: &str) -> Option<Version> {
     let s = input.trim().strip_prefix('v').unwrap_or(input.trim());
@@ -89,12 +89,24 @@ impl Daemon {
         {
             let latest_version = self.latest_version.clone();
             tokio::spawn(async move {
+                let client = reqwest::Client::new();
                 loop {
-                    match reqwest::get(VERSION_URL).await {
+                    match client
+                        .get(VERSION_URL)
+                        .header(reqwest::header::USER_AGENT, "workstation-cli")
+                        .send()
+                        .await
+                    {
                         Ok(resp) if resp.status().is_success() => {
-                            if let Ok(text) = resp.text().await {
-                                let update = compute_update_available(&text, CURRENT_VERSION);
-                                *latest_version.lock() = update;
+                            if let Ok(body) = resp.text().await {
+                                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
+                                    let tag = json
+                                        .get("tag_name")
+                                        .and_then(|v| v.as_str())
+                                        .unwrap_or("");
+                                    let update = compute_update_available(tag, CURRENT_VERSION);
+                                    *latest_version.lock() = update;
+                                }
                             }
                         }
                         _ => {

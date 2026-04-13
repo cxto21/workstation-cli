@@ -16,6 +16,7 @@ use error::{MatoError, Result};
 use protocol::{ClientMsg, ServerMsg};
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
+use std::process::Command;
 use std::time::{Duration, Instant};
 
 use crossterm::{
@@ -45,6 +46,7 @@ fn main() -> Result<()> {
     let mut want_foreground = false;
     let mut want_status = false;
     let mut want_kill = false;
+    let mut want_update = false;
     let mut unknown: Vec<String> = Vec::new();
 
     for arg in &args {
@@ -55,6 +57,7 @@ fn main() -> Result<()> {
             "--foreground" => want_foreground = true,
             "--status" => want_status = true,
             "--kill" => want_kill = true,
+            "--update" | "--upgrade" => want_update = true,
             _ => unknown.push(arg.clone()),
         }
     }
@@ -71,11 +74,14 @@ fn main() -> Result<()> {
         std::process::exit(2);
     }
 
-    let mode_count =
-        (want_version as u8) + (want_daemon as u8) + (want_status as u8) + (want_kill as u8);
+    let mode_count = (want_version as u8)
+        + (want_daemon as u8)
+        + (want_status as u8)
+        + (want_kill as u8)
+        + (want_update as u8);
     if mode_count > 1 {
         eprintln!(
-            "Conflicting command flags. Use only one of: --version, --daemon, --status, --kill"
+            "Conflicting command flags. Use only one of: --version, --daemon, --status, --kill, --update"
         );
         eprintln!();
         print_help();
@@ -105,6 +111,12 @@ fn main() -> Result<()> {
     if want_kill {
         return daemon::kill_all().map_err(MatoError::from);
     }
+
+    if want_update {
+        return run_update_installer();
+    }
+
+    utils::migrate_legacy_user_data();
 
     // Setup client logging
     let log_path = utils::get_client_log_path();
@@ -138,6 +150,13 @@ fn main() -> Result<()> {
     // Ensure daemon is running
     daemon::ensure_daemon_running()?;
     ensure_daemon_version_compatible()?;
+
+    if let Some(ver) = daemon_update_available() {
+        if confirm_cli_update(&ver) {
+            run_update_installer()?;
+            return Ok(());
+        }
+    }
 
     run_client().map_err(|e| {
         eprintln!("Error: {}", e);
@@ -222,10 +241,59 @@ fn print_help() {
                                    Run daemon in foreground (debug)\n\
               workstation-cli --status           Show daemon/runtime status\n\
               workstation-cli --kill             Kill daemon, clients, and managed tab processes\n\
+              workstation-cli --update           Update workstation-cli using official installer\n\
               workstation-cli --version, -v      Show version\n\
               workstation-cli --help, -h, help   Show this help\n",
         env!("CARGO_PKG_VERSION")
     );
+}
+
+fn daemon_update_available() -> Option<String> {
+    let socket_path = utils::get_socket_path();
+    let mut stream = UnixStream::connect(&socket_path).ok()?;
+    let msg = serde_json::to_vec(&ClientMsg::GetUpdateStatus).ok()?;
+    stream.write_all(&msg).ok()?;
+    stream.write_all(b"\n").ok()?;
+    stream.flush().ok()?;
+
+    let mut line = String::new();
+    BufReader::new(&stream).read_line(&mut line).ok()?;
+    match serde_json::from_str::<ServerMsg>(&line).ok()? {
+        ServerMsg::UpdateStatus { latest } => latest,
+        _ => None,
+    }
+}
+
+fn confirm_cli_update(version: &str) -> bool {
+    eprintln!(
+        "A newer workstation-cli version is available: {}. Update now? [Y/n]: ",
+        version
+    );
+    let _ = std::io::stderr().flush();
+    let mut input = String::new();
+    if std::io::stdin().read_line(&mut input).is_err() {
+        return false;
+    }
+    let ans = input.trim().to_ascii_lowercase();
+    ans.is_empty() || ans == "y" || ans == "yes"
+}
+
+fn run_update_installer() -> Result<()> {
+    let install_cmd = "curl -fsSL https://raw.githubusercontent.com/cxto21/workstation-cli/main/install.sh | bash";
+    let status = Command::new("sh")
+        .arg("-c")
+        .arg(install_cmd)
+        .status()
+        .map_err(MatoError::from)?;
+
+    if !status.success() {
+        return Err(MatoError::StateSaveFailed(
+            "Update failed while running installer".to_string(),
+        ));
+    }
+
+    eprintln!("Update completed. Restart workstation-cli to use the latest version.");
+    Ok(())
 }
 
 enum ScreenState {
