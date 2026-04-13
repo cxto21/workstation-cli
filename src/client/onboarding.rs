@@ -1,7 +1,6 @@
 use std::io::{self, Write};
 
 // Embed templates at compile time
-const POWER_USER: &str = include_str!("../../templates/power-user.json");
 const SOLO_DEVELOPER: &str = include_str!("../../templates/solo-developer.json");
 const ONE_PERSON_COMPANY: &str = include_str!("../../templates/one-person-company.json");
 const FULLSTACK_DEVELOPER: &str = include_str!("../../templates/fullstack-developer.json");
@@ -13,26 +12,23 @@ pub fn show_onboarding() -> io::Result<()> {
     println!("Multi-Agent Terminal Office - Your persistent terminal multiplexer\n");
     
     println!("Choose a workspace template:\n");
-    println!("  1. Mato Creator Office (45 tasks, 250+ tabs) ⭐ RECOMMENDED");
-    println!("     → The actual office used by Mato creators/builders");
-    println!();
-    println!("  2. Solo Developer (3 tasks, 8 tabs)");
+    println!("  1. Solo Developer (3 tasks, 8 tabs)");
     println!("     → Perfect for individual developers");
     println!();
-    println!("  3. One-Person Company (4 tasks, 13 tabs)");
+    println!("  2. One-Person Company (4 tasks, 13 tabs)");
     println!("     → Organized by business departments");
     println!();
-    println!("  4. Full-Stack Developer (4 tasks, 11 tabs)");
+    println!("  3. Full-Stack Developer (4 tasks, 11 tabs)");
     println!("     → Multiple projects + DevOps + Learning");
     println!();
-    println!("  5. Data Scientist (4 tasks, 11 tabs)");
+    println!("  4. Data Scientist (4 tasks, 11 tabs)");
     println!("     → Data analysis, ML training, pipelines");
     println!();
-    println!("  6. Minimal (1 task, 1 tab)");
+    println!("  5. Minimal (1 task, 1 tab)");
     println!("     → Start from scratch");
     println!();
     
-    print!("Enter your choice (1-6): ");
+    print!("Enter your choice (1-5): ");
     io::stdout().flush()?;
     
     let mut input = String::new();
@@ -40,12 +36,11 @@ pub fn show_onboarding() -> io::Result<()> {
     
     let choice = input.trim();
     let template_content = match choice {
-        "1" => POWER_USER,
-        "2" => SOLO_DEVELOPER,
-        "3" => ONE_PERSON_COMPANY,
-        "4" => FULLSTACK_DEVELOPER,
-        "5" => DATA_SCIENTIST,
-        "6" => MINIMAL,
+        "1" => SOLO_DEVELOPER,
+        "2" => ONE_PERSON_COMPANY,
+        "3" => FULLSTACK_DEVELOPER,
+        "4" => DATA_SCIENTIST,
+        "5" => MINIMAL,
         _ => {
             println!("\n❌ Invalid choice. Using minimal template.");
             MINIMAL

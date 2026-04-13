@@ -21,3 +21,9 @@ Retarget public install and update references to `cxto21/workstation-cli` so the
 ## Verification
 
 `git diff --check` passed. `cargo test --locked` passed for the project except for one pre-existing failure in `tests/input_tests.rs` (`content_delete_page_and_function_keys_are_encoded`), which is unrelated to the release workflow/docs edits.
+
+## Session Update: Onboarding Palette and Template Cleanup
+
+- Changed the onboarding UI to a strict black-and-white palette.
+- Removed the `Mato Creator Office` template from both onboarding entry points.
+- Bumped the crate version to `0.9.7` so the next release can carry these UI changes.

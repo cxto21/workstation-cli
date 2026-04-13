@@ -81,7 +81,6 @@ const SOLO_DEVELOPER: &str = include_str!("../../templates/solo-developer.json")
 const ONE_PERSON_COMPANY: &str = include_str!("../../templates/one-person-company.json");
 const FULLSTACK_DEVELOPER: &str = include_str!("../../templates/fullstack-developer.json");
 const DATA_SCIENTIST: &str = include_str!("../../templates/data-scientist.json");
-const POWER_USER: &str = include_str!("../../templates/power-user.json");
 const MARKETING_OPS: &str = include_str!("../../templates/marketing-ops.json");
 const FINANCIAL_TRADER: &str = include_str!("../../templates/financial-trader.json");
 const HR_ADMIN: &str = include_str!("../../templates/hr-admin.json");
@@ -210,7 +209,6 @@ fn parse_template(content: &'static str) -> Template {
 fn get_templates() -> Vec<Template> {
     vec![
         parse_template(START_FROM_SCRATCH),
-        parse_template(POWER_USER),
         parse_template(SOLO_DEVELOPER),
         parse_template(ONE_PERSON_COMPANY),
         parse_template(FULLSTACK_DEVELOPER),
@@ -409,14 +407,14 @@ fn draw_onboarding(
             Line::from(Span::styled(
                 *line,
                 Style::default()
-                    .fg(Color::Cyan)
+                    .fg(Color::White)
                     .add_modifier(Modifier::BOLD),
             ))
         })
         .collect();
     title_lines.push(Line::from(Span::styled(
         ui_text(language, UiText::WelcomeSubtitle),
-        Style::default().fg(Color::Gray),
+        Style::default().fg(Color::White),
     )));
 
     let title = Paragraph::new(title_lines)
@@ -431,7 +429,7 @@ fn draw_onboarding(
         ui_text(language, UiText::LanguageHint)
     ))
     .alignment(Alignment::Center)
-    .style(Style::default().fg(Color::Gray))
+    .style(Style::default().fg(Color::White))
     .block(Block::default().borders(Borders::BOTTOM));
     f.render_widget(language_line, chunks[1]);
 
@@ -451,10 +449,11 @@ fn draw_onboarding(
     };
     let office_style = if office_name.in_edit {
         Style::default()
-            .fg(Color::Yellow)
+            .fg(Color::Black)
+            .bg(Color::White)
             .add_modifier(Modifier::BOLD)
     } else {
-        Style::default().fg(Color::Gray)
+        Style::default().fg(Color::White)
     };
     let office_widget = Paragraph::new(office_line)
         .alignment(Alignment::Center)
@@ -469,9 +468,11 @@ fn draw_onboarding(
             ListItem::new(vec![
                 Line::from(Span::styled(
                     name,
-                    Style::default().add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
                 )),
-                Line::from(Span::styled(desc, Style::default().fg(Color::DarkGray))),
+                Line::from(Span::styled(desc, Style::default().fg(Color::White))),
             ])
         })
         .collect();
@@ -484,11 +485,12 @@ fn draw_onboarding(
                     ui_text(language, UiText::ChooseTemplateTitle)
                 ))
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Cyan)),
+                .border_style(Style::default().fg(Color::White)),
         )
         .highlight_style(
             Style::default()
-                .bg(Color::Rgb(40, 40, 60))
+                .fg(Color::Black)
+                .bg(Color::White)
                 .add_modifier(Modifier::BOLD),
         )
         .highlight_symbol("▶ ");
@@ -503,7 +505,7 @@ fn draw_onboarding(
             Block::default()
                 .title(format!(" {} ", ui_text(language, UiText::DetailsTitle)))
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Yellow)),
+                .border_style(Style::default().fg(Color::White)),
         )
         .style(Style::default().fg(Color::White));
     f.render_widget(details, chunks[4]);
@@ -517,7 +519,7 @@ fn draw_onboarding(
     };
     let help = Paragraph::new(help_text)
         .alignment(Alignment::Center)
-        .style(Style::default().fg(Color::DarkGray));
+        .style(Style::default().fg(Color::White));
     f.render_widget(help, chunks[5]);
 }
 
