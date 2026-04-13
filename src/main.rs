@@ -47,6 +47,7 @@ fn main() -> Result<()> {
     let mut want_status = false;
     let mut want_kill = false;
     let mut want_update = false;
+    let mut want_reset_onboarding = false;
     let mut unknown: Vec<String> = Vec::new();
 
     for arg in &args {
@@ -58,6 +59,7 @@ fn main() -> Result<()> {
             "--status" => want_status = true,
             "--kill" => want_kill = true,
             "--update" | "--upgrade" => want_update = true,
+            "--reset-onboarding" => want_reset_onboarding = true,
             _ => unknown.push(arg.clone()),
         }
     }
@@ -78,10 +80,11 @@ fn main() -> Result<()> {
         + (want_daemon as u8)
         + (want_status as u8)
         + (want_kill as u8)
-        + (want_update as u8);
+        + (want_update as u8)
+        + (want_reset_onboarding as u8);
     if mode_count > 1 {
         eprintln!(
-            "Conflicting command flags. Use only one of: --version, --daemon, --status, --kill, --update"
+            "Conflicting command flags. Use only one of: --version, --daemon, --status, --kill, --update, --reset-onboarding"
         );
         eprintln!();
         print_help();
@@ -114,6 +117,10 @@ fn main() -> Result<()> {
 
     if want_update {
         return run_update_installer();
+    }
+
+    if want_reset_onboarding {
+        return reset_onboarding_state();
     }
 
     utils::migrate_legacy_user_data();
@@ -242,10 +249,23 @@ fn print_help() {
               workstation-cli --status           Show daemon/runtime status\n\
               workstation-cli --kill             Kill daemon, clients, and managed tab processes\n\
               workstation-cli --update           Update workstation-cli using official installer\n\
+              workstation-cli --reset-onboarding Remove saved state to force first-run onboarding\n\
               workstation-cli --version, -v      Show version\n\
               workstation-cli --help, -h, help   Show this help\n",
         env!("CARGO_PKG_VERSION")
     );
+}
+
+fn reset_onboarding_state() -> Result<()> {
+    let state_path = utils::get_state_file_path();
+    if state_path.exists() {
+        std::fs::remove_file(&state_path)?;
+        println!("Removed onboarding state: {}", state_path.display());
+    } else {
+        println!("No saved onboarding state found at: {}", state_path.display());
+    }
+    println!("Next 'workstation-cli' run will show first-run onboarding.");
+    Ok(())
 }
 
 fn daemon_update_available() -> Option<String> {

@@ -51,6 +51,9 @@ workstation-cli --version
 # Launch TUI
 workstation-cli
 
+# Reset first-run onboarding state
+workstation-cli --reset-onboarding
+
 # Team state sync
 workstation-cli sync status
 workstation-cli sync pull
