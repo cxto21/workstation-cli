@@ -29,6 +29,8 @@ It is designed for humans supervising AI-assisted work in a reproducible termina
 
 One-command install:
 
+This downloads a prebuilt binary from GitHub Releases, so the first install stays fast.
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cxto21/workstation-cli/main/install.sh | bash
 ```
