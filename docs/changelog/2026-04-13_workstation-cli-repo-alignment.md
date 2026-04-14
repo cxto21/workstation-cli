@@ -26,4 +26,9 @@ Retarget public install and update references to `cxto21/workstation-cli` so the
 
 - Changed the onboarding UI to a strict black-and-white palette.
 - Removed the `Mato Creator Office` template from both onboarding entry points.
-- Bumped the crate version to `0.9.7` so the next release can carry these UI changes.
+- Bumped the crate version to `0.9.8` so the next release can carry these UI changes.
+## Session Update: Linux Compatibility Fix
+
+- Added a Linux `musl` release target so the installer can avoid host GLIBC mismatches on WSL and older distros.
+- Updated `install.sh` to prefer the `musl` tarball on Linux and fall back to the legacy glibc-linked archive when needed.
+- Documented the compatibility change in the release guide.

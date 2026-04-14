@@ -37,6 +37,7 @@ git push origin v0.1.0
 
 This will trigger the GitHub Actions workflow to:
 - Build precompiled binaries for Linux and macOS
+- Build a Linux `musl` binary for maximum compatibility on WSL and older distros
 - Create a GitHub release
 - Upload binaries and checksums automatically
 
@@ -89,12 +90,13 @@ mato --version
 
 ## Platform Support
 
-| Platform | Architecture | Status |
-|----------|--------------|--------|
-| Linux | x86_64 | ✅ Supported |
-| Linux | aarch64 | ✅ Supported |
-| macOS | x86_64 (Intel) | ✅ Supported |
-| macOS | aarch64 (Apple Silicon) | ✅ Supported |
+| Platform | Architecture | Binary | Status |
+|----------|--------------|--------|--------|
+| Linux | x86_64 | glibc-linked | ✅ Supported |
+| Linux | x86_64 | musl-static | ✅ Preferred |
+| Linux | aarch64 | glibc-linked | ✅ Supported |
+| macOS | x86_64 (Intel) | native | ✅ Supported |
+| macOS | aarch64 (Apple Silicon) | native | ✅ Supported |
 
 ## Distribution Channels
 

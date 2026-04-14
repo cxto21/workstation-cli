@@ -29,7 +29,7 @@ It is designed for humans supervising AI-assisted work in a reproducible termina
 
 One-command install:
 
-This downloads a prebuilt binary from GitHub Releases, so the first install stays fast.
+This downloads a prebuilt binary from GitHub Releases, and on Linux it prefers the musl build to avoid GLIBC mismatches on WSL and older distros.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cxto21/workstation-cli/main/install.sh | bash

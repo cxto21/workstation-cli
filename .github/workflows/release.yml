@@ -24,6 +24,10 @@ jobs:
             archive_name: workstation-cli-linux-x86_64.tar.gz
             artifact_name: workstation-cli-linux-x86_64
           - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+            archive_name: workstation-cli-linux-x86_64-musl.tar.gz
+            artifact_name: workstation-cli-linux-x86_64-musl
+          - runner: ubuntu-24.04
             target: aarch64-unknown-linux-gnu
             archive_name: workstation-cli-linux-aarch64.tar.gz
             artifact_name: workstation-cli-linux-aarch64
@@ -54,12 +58,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu libc6-dev-arm64-cross
 
+      - name: Install musl toolchain
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
       - name: Build release binary
         run: cargo build --locked --release --target ${{ matrix.target }}
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
           CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
           AR_aarch64_unknown_linux_gnu: aarch64-linux-gnu-ar
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: musl-gcc
 
       - name: Package release binary
         run: |

@@ -41,6 +41,7 @@ esac
 
 LEGACY_BINARY_NAME="mato-${OS_TYPE}-${ARCH_TYPE}"
 NEW_BINARY_NAME="workstation-cli-${OS_TYPE}-${ARCH_TYPE}"
+MUSL_BINARY_NAME="workstation-cli-${OS_TYPE}-${ARCH_TYPE}-musl"
 TARGET_BIN="${INSTALL_DIR}/workstation-cli"
 LEGACY_BIN="${INSTALL_DIR}/mato"
 
@@ -68,21 +69,32 @@ fi
 echo "Latest version: $LATEST_RELEASE"
 
 # Resolve download URL from release assets.
-# Supports both legacy and new naming schemes:
-#   mato-<os>-<arch>.tar.gz
-#   mato-<os>-<arch>-<tag>.tar.gz
-#   workstation-cli-<os>-<arch>.tar.gz
-#   workstation-cli-<os>-<arch>-<tag>.tar.gz
-DOWNLOAD_URL=$(
-    printf '%s' "$RELEASE_JSON" \
-    | grep '"browser_download_url":' \
-    | sed -E 's/.*"([^"]+)".*/\1/' \
-    | grep -E "/(${LEGACY_BINARY_NAME}|${NEW_BINARY_NAME})(-[^/]+)?\\.tar\\.gz$" \
-    | head -n1
-)
+# Supports both legacy and new naming schemes.
+# On Linux we prefer a musl binary first to avoid glibc compatibility issues.
+DOWNLOAD_URL=""
+CANDIDATE_ASSETS=""
+if [ "$OS_TYPE" = "linux" ]; then
+    CANDIDATE_ASSETS="${MUSL_BINARY_NAME} ${NEW_BINARY_NAME} ${LEGACY_BINARY_NAME}"
+else
+    CANDIDATE_ASSETS="${NEW_BINARY_NAME} ${LEGACY_BINARY_NAME}"
+fi
+
+for ASSET_PREFIX in $CANDIDATE_ASSETS; do
+    DOWNLOAD_URL=$(
+        printf '%s' "$RELEASE_JSON" \
+        | grep '"browser_download_url":' \
+        | sed -E 's/.*"([^"]+)".*/\1/' \
+        | grep -E "/(${ASSET_PREFIX})(-[^/]+)?\\.tar\\.gz$" \
+        | head -n1
+    )
+
+    if [ -n "$DOWNLOAD_URL" ]; then
+        break
+    fi
+done
 
 if [ -z "$DOWNLOAD_URL" ]; then
-    echo "No matching binary asset found for ${NEW_BINARY_NAME} or ${LEGACY_BINARY_NAME} in release ${LATEST_RELEASE}"
+    echo "No matching binary asset found for ${NEW_BINARY_NAME}, ${MUSL_BINARY_NAME} or ${LEGACY_BINARY_NAME} in release ${LATEST_RELEASE}"
     echo "Available assets:"
     printf '%s' "$RELEASE_JSON" \
       | grep '"name":' \
