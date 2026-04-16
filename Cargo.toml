@@ -1,12 +1,12 @@
 [package]
 name = "mato"
-version = "0.9.8"
+version = "0.9.9"
 edition = "2021"
 authors = ["Your Name <your.email@example.com>"]
 description = "Multi-Agent Terminal Office - A daemon-based persistent terminal multiplexer"
-homepage = "https://github.com/mr-kelly/mato"
-repository = "https://github.com/mr-kelly/mato"
-license = "MIT"
+homepage = "https://github.com/reflecterlabs/workstation-cli"
+repository = "https://github.com/reflecterlabs/workstation-cli"
+license = "BSD-3-Clause"
 keywords = ["terminal", "multiplexer", "tui", "daemon", "ratatui"]
 categories = ["command-line-utilities"]
 

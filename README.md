@@ -8,8 +8,8 @@
 Control plane for AI-driven teams, shared state, and agent execution.
 
 [![Rust](https://img.shields.io/badge/rust-stable-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/cxto21/workstation-cli?style=for-the-badge&color=gold)](https://github.com/cxto21/workstation-cli/stargazers)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue?style=for-the-badge)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/reflecterlabs/workstation-cli?style=for-the-badge&color=gold)](https://github.com/reflecterlabs/workstation-cli/stargazers)
 
 [Quick Start](#quick-start) • [Core Commands](#core-commands) • [Features](#features) • [Development](#development) • [Resources](#resources)
 

@@ -21,3 +21,5 @@
 - Fixed `install.sh` asset selection loop to avoid silent failure when the first Linux candidate asset is missing.
 - Updated README install/clone/repo URLs to use `reflecterlabs/workstation-cli` consistently.
 - Opted GitHub JavaScript actions into Node 24 in `release.yml` to remove Node 20 deprecation warnings before enforcement.
+- Bumped project version to `0.9.9` for next automatic release tag from `main`.
+- Switched project license metadata and README badge from MIT to BSD-3-Clause and added a `LICENSE` file.
