@@ -8,8 +8,10 @@
 Control plane for AI-driven teams, shared state, and agent execution.
 
 [![Rust](https://img.shields.io/badge/rust-stable-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/cxto21/workstation-cli?style=for-the-badge&color=gold)](https://github.com/cxto21/workstation-cli/stargazers)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue?style=for-the-badge)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/reflecterlabs/workstation-cli?style=for-the-badge&color=gold)](https://github.com/reflecterlabs/workstation-cli/stargazers)
+
+Brand use is covered by [Trademark Policy](TRADEMARK.md).
 
 [Quick Start](#quick-start) • [Core Commands](#core-commands) • [Features](#features) • [Development](#development) • [Resources](#resources)
 
@@ -32,13 +34,13 @@ One-command install:
 This downloads a prebuilt binary from GitHub Releases, and on Linux it prefers the musl build to avoid GLIBC mismatches on WSL and older distros.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cxto21/workstation-cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/reflecterlabs/workstation-cli/main/install.sh | bash
 ```
 
 Manual build:
 
 ```bash
-git clone https://github.com/cxto21/workstation-cli.git
+git clone https://github.com/reflecterlabs/workstation-cli.git
 cd workstation-cli
 cargo build --release
 install -m 755 target/release/workstation-cli ~/.local/bin/workstation-cli
@@ -92,7 +94,7 @@ go test ./...
 ```
 
 Contributions are welcome through pull requests on:
-https://github.com/cxto21/workstation-cli
+https://github.com/reflecterlabs/workstation-cli
 
 ## Resources
 
@@ -101,6 +103,7 @@ https://github.com/cxto21/workstation-cli
 - [Testing Guide](docs/TESTING.md)
 - [Terminal Persistence](docs/TERMINAL_PERSISTENCE.md)
 - [Roadmap](docs/todos/roadmap.md)
+- [Trademark Policy](TRADEMARK.md)
 
 ---
 
@@ -108,6 +111,6 @@ https://github.com/cxto21/workstation-cli
 
 Built for clear, team-first execution in the terminal.
 
-[Star the project](https://github.com/cxto21/workstation-cli) • [Report issues](https://github.com/cxto21/workstation-cli/issues)
+[Star the project](https://github.com/reflecterlabs/workstation-cli) • [Report issues](https://github.com/reflecterlabs/workstation-cli/issues)
 
 </div>
