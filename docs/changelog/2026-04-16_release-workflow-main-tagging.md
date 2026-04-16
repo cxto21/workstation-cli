@@ -17,3 +17,4 @@
 - Added a short contribution guide at `CONTRIB.md` so small-team branch and PR flow stays explicit for humans and agents.
 - Added `scripts/create-pr.sh` and aligned `AGENTS.md` with the branch, push, and PR flow used by the team.
 - Clarified hotfix handling: hotfixes should still use `fix/*` and PRs to `main`, while any emergency change landed on `main` will tag automatically from the version in `Cargo.toml`.
+- Updated release workflow macOS runner from `macos-13` to `macos-14` after CI failure with unsupported runner configuration.
