@@ -11,6 +11,8 @@ Control plane for AI-driven teams, shared state, and agent execution.
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue?style=for-the-badge)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/reflecterlabs/workstation-cli?style=for-the-badge&color=gold)](https://github.com/reflecterlabs/workstation-cli/stargazers)
 
+Brand use is covered by [Trademark Policy](TRADEMARK.md).
+
 [Quick Start](#quick-start) • [Core Commands](#core-commands) • [Features](#features) • [Development](#development) • [Resources](#resources)
 
 </div>
@@ -101,6 +103,7 @@ https://github.com/reflecterlabs/workstation-cli
 - [Testing Guide](docs/TESTING.md)
 - [Terminal Persistence](docs/TERMINAL_PERSISTENCE.md)
 - [Roadmap](docs/todos/roadmap.md)
+- [Trademark Policy](TRADEMARK.md)
 
 ---
 

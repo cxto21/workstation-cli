@@ -23,3 +23,4 @@
 - Opted GitHub JavaScript actions into Node 24 in `release.yml` to remove Node 20 deprecation warnings before enforcement.
 - Bumped project version to `0.9.9` for next automatic release tag from `main`.
 - Switched project license metadata and README badge from MIT to BSD-3-Clause and added a `LICENSE` file.
+- Added `TRADEMARK.md` to keep the code open under BSD-3-Clause while protecting the project name, logo, and branding.
