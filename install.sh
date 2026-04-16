@@ -3,10 +3,10 @@ set -e
 set -o pipefail
 
 # Workstation CLI Installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/cxto21/workstation-cli/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/reflecterlabs/workstation-cli/main/install.sh | bash
 
 # Override with: WORKSTATION_REPO=owner/repo (legacy MATO_REPO also supported)
-REPO="${WORKSTATION_REPO:-${MATO_REPO:-cxto21/workstation-cli}}"
+REPO="${WORKSTATION_REPO:-${MATO_REPO:-reflecterlabs/workstation-cli}}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
 # Detect OS and architecture
