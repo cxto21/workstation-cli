@@ -2,8 +2,13 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -91,6 +96,46 @@ jobs:
     needs: build
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine release version
+        id: version
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
+          if [[ -z "$version" ]]; then
+            echo "Failed to determine release version from Cargo.toml" >&2
+            exit 1
+          fi
+
+          tag="v${version}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push release tag
+        run: |
+          set -euo pipefail
+          tag="${{ steps.version.outputs.tag }}"
+          head_sha="${{ github.sha }}"
+
+          remote_tag_sha=$(git ls-remote --tags origin "refs/tags/$tag^{}" | awk '{print $1}' | head -n 1)
+
+          if [[ -n "$remote_tag_sha" ]]; then
+            if [[ "$remote_tag_sha" != "$head_sha" ]]; then
+              echo "Release tag $tag already exists for a different commit ($remote_tag_sha). Bump Cargo.toml before releasing again." >&2
+              exit 1
+            fi
+
+            echo "Release tag $tag already exists for this commit; skipping tag creation."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "$tag"
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -106,6 +151,7 @@ jobs:
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           files: |
             dist/*.tar.gz
             dist/checksums.txt
