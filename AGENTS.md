@@ -176,6 +176,11 @@ When changing domain concepts (Org, Seat, Project, KB, Memory):
 - Prefer the repository helper script for opening PRs when available
 - Merge only after another team member approves
 
+### Hotfix Flow
+- Hotfixes should use a `fix/*` branch and a PR to `main`
+- If a fast-track emergency lands directly on `main`, the release workflow will tag it automatically from `Cargo.toml`
+- A version bump is still required before that release can publish a new tag
+
 ### Session Changelog Rule
 For each AI agent chat session:
 - maintain exactly one session changelog file in docs/changelog/

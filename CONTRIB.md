@@ -20,12 +20,15 @@ Keep changes small, reviewable, and focused.
 
 Use `scripts/create-pr.sh` to push the branch and open the PR.
 
+Hotfixes also follow the same flow with a `fix/*` branch.
+
 ## Rules
 
 - Do not push directly to `main`
 - Keep PRs small and easy to review
 - Prefer docs and tests with code changes
 - Use the release workflow only after version bumps on `main`
+- Hotfixes merged into `main` will be tagged automatically by the release workflow
 
 ## For Agents
 
