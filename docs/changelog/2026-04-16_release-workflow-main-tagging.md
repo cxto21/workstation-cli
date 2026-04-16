@@ -20,3 +20,4 @@
 - Updated release workflow macOS runner from `macos-13` to `macos-14` after CI failure with unsupported runner configuration.
 - Fixed `install.sh` asset selection loop to avoid silent failure when the first Linux candidate asset is missing.
 - Updated README install/clone/repo URLs to use `reflecterlabs/workstation-cli` consistently.
+- Opted GitHub JavaScript actions into Node 24 in `release.yml` to remove Node 20 deprecation warnings before enforcement.
