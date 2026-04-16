@@ -161,16 +161,36 @@ When changing domain concepts (Org, Seat, Project, KB, Memory):
 
 ### Preferred Cycle
 1. Clarify intent and boundaries
-2. Implement minimal slice
-3. Validate build/tests
-4. Document behavior and trade-offs
-5. Iterate
+2. Create a branch from `main` using `feat/*`, `fix/*`, or `ci/*`
+3. Implement the minimal slice
+4. Validate build/tests
+5. Commit and push the branch
+6. Open a pull request to `main` and request review
+7. Document behavior and trade-offs
+8. Iterate
+
+### Contribution Flow
+- Do not push directly to `main`
+- Use a dedicated branch per change
+- Keep PRs small and reviewable
+- Prefer the repository helper script for opening PRs when available
+- Merge only after another team member approves
+
+### Hotfix Flow
+- Hotfixes should use a `fix/*` branch and a PR to `main`
+- If a fast-track emergency lands directly on `main`, the release workflow will tag it automatically from `Cargo.toml`
+- A version bump is still required before that release can publish a new tag
 
 ### Session Changelog Rule
 For each AI agent chat session:
 - maintain exactly one session changelog file in docs/changelog/
 - keep appending to the same file during the session
 - only split if explicitly requested
+
+### Agent Branching Rule
+- Agents should work on `feat/*`, `fix/*`, or `ci/*` branches only
+- Agents should push the branch and open a PR to `main`
+- Agents should not skip review or merge directly to `main`
 
 ## 9. Repository Conventions
 

@@ -28,20 +28,16 @@ git commit -m "chore: bump version to 0.1.0"
 git push
 ```
 
-### 4. Create and Push Tag
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
+Push the commit to `main`. The release workflow will create the `v0.1.0` tag automatically from the version in `Cargo.toml`.
 
 This will trigger the GitHub Actions workflow to:
 - Build precompiled binaries for Linux and macOS
 - Build a Linux `musl` binary for maximum compatibility on WSL and older distros
+- Create and push the matching version tag
 - Create a GitHub release
 - Upload binaries and checksums automatically
 
-### 5. Update Homebrew Formula
+### 4. Update Homebrew Formula
 
 After the release is created:
 
@@ -60,7 +56,7 @@ After the release is created:
    git push
    ```
 
-### 6. Test Installation
+### 5. Test Installation
 
 ```bash
 # Test install script
@@ -81,7 +77,7 @@ mato --version
 - [ ] All tests pass (`cargo test`)
 - [ ] Binary builds locally (`cargo build --release`)
 - [ ] Changes committed and pushed
-- [ ] Tag created and pushed
+- [ ] Changes merged or pushed to `main`
 - [ ] GitHub Actions workflow succeeded
 - [ ] Release created on GitHub
 - [ ] Prebuilt binaries uploaded
