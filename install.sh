@@ -85,7 +85,8 @@ for ASSET_PREFIX in $CANDIDATE_ASSETS; do
         | grep '"browser_download_url":' \
         | sed -E 's/.*"([^"]+)".*/\1/' \
         | grep -E "/(${ASSET_PREFIX})(-[^/]+)?\\.tar\\.gz$" \
-        | head -n1
+        | head -n1 \
+        || true
     )
 
     if [ -n "$DOWNLOAD_URL" ]; then

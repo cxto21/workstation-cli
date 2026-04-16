@@ -18,3 +18,5 @@
 - Added `scripts/create-pr.sh` and aligned `AGENTS.md` with the branch, push, and PR flow used by the team.
 - Clarified hotfix handling: hotfixes should still use `fix/*` and PRs to `main`, while any emergency change landed on `main` will tag automatically from the version in `Cargo.toml`.
 - Updated release workflow macOS runner from `macos-13` to `macos-14` after CI failure with unsupported runner configuration.
+- Fixed `install.sh` asset selection loop to avoid silent failure when the first Linux candidate asset is missing.
+- Updated README install/clone/repo URLs to use `reflecterlabs/workstation-cli` consistently.

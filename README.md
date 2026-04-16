@@ -32,13 +32,13 @@ One-command install:
 This downloads a prebuilt binary from GitHub Releases, and on Linux it prefers the musl build to avoid GLIBC mismatches on WSL and older distros.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cxto21/workstation-cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/reflecterlabs/workstation-cli/main/install.sh | bash
 ```
 
 Manual build:
 
 ```bash
-git clone https://github.com/cxto21/workstation-cli.git
+git clone https://github.com/reflecterlabs/workstation-cli.git
 cd workstation-cli
 cargo build --release
 install -m 755 target/release/workstation-cli ~/.local/bin/workstation-cli
@@ -92,7 +92,7 @@ go test ./...
 ```
 
 Contributions are welcome through pull requests on:
-https://github.com/cxto21/workstation-cli
+https://github.com/reflecterlabs/workstation-cli
 
 ## Resources
 
@@ -108,6 +108,6 @@ https://github.com/cxto21/workstation-cli
 
 Built for clear, team-first execution in the terminal.
 
-[Star the project](https://github.com/cxto21/workstation-cli) • [Report issues](https://github.com/cxto21/workstation-cli/issues)
+[Star the project](https://github.com/reflecterlabs/workstation-cli) • [Report issues](https://github.com/reflecterlabs/workstation-cli/issues)
 
 </div>
