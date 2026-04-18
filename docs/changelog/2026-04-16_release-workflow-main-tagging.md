@@ -25,3 +25,4 @@
 - Switched project license metadata and README badge from MIT to BSD-3-Clause and added a `LICENSE` file.
 - Added `TRADEMARK.md` to keep the code open under BSD-3-Clause while protecting the project name, logo, and branding.
 - Aligned `Cargo.lock` with the `0.9.9` package version so the release workflow can build with `--locked`.
+- Switched the x86_64 Linux release build from `ubuntu-20.04` to `ubuntu-24.04` to avoid the run cancellation that prevented tag publishing.
