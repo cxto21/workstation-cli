@@ -26,3 +26,5 @@
 - Added `TRADEMARK.md` to keep the code open under BSD-3-Clause while protecting the project name, logo, and branding.
 - Aligned `Cargo.lock` with the `0.9.9` package version so the release workflow can build with `--locked`.
 - Switched the x86_64 Linux release build from `ubuntu-20.04` to `ubuntu-24.04` to avoid the run cancellation that prevented tag publishing.
+- Added a dedicated integration plan for Gentle AI as a first-class Workstation ecosystem tool under `docs/agents/GENTLE_AI_INTEGRATION.md`.
+- Added initial `workstation-cli tools` integration for gentle-ai with `status`, guided `init` (dry-run + apply), and `sync`.

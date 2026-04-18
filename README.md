@@ -68,7 +68,25 @@ workstation-cli ssot validate
 # Integration checks
 workstation-cli tools status
 workstation-cli tools init
+workstation-cli tools sync
 ```
+
+## Gentle AI Onboarding
+
+Use Workstation as control plane and gentle-ai as ecosystem bootstrap/sync layer:
+
+```bash
+# 1) Verify gentle-ai availability
+workstation-cli tools status
+
+# 2) Guided onboarding (asks agents/preset/persona)
+workstation-cli tools init
+
+# 3) Re-apply ecosystem sync later
+workstation-cli tools sync
+```
+
+`tools init` runs a dry-run first and asks for confirmation before applying changes.
 
 ## Features
 

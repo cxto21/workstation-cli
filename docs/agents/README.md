@@ -8,6 +8,7 @@ AI-facing documentation. Not intended for end users.
 |------|---------|
 | `TESTING.md` | Test coverage map, what's tested, what's left, reusable patterns |
 | `RELEASE_GUIDE.md` | Release process, version bumping, git tagging steps |
+| `GENTLE_AI_INTEGRATION.md` | Integration plan to make gentle-ai a first-class Workstation ecosystem tool |
 
 ## See Also
 

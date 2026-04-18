@@ -11,6 +11,7 @@ pub mod terminal;
 pub mod terminal_emulator;
 pub mod terminal_provider;
 pub mod theme;
+pub mod tools;
 pub mod utils;
 
 // Re-export commonly used items

@@ -10,6 +10,7 @@ mod terminal;
 mod terminal_emulator;
 mod terminal_provider;
 mod theme;
+mod tools;
 mod utils;
 
 use error::{MatoError, Result};
@@ -39,6 +40,10 @@ use terminal::{consume_resumed, TerminalGuard};
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+
+    if !args.is_empty() && args[0] == "tools" {
+        return tools::handle_tools_command(&args[1..]);
+    }
 
     let mut want_help = false;
     let mut want_version = false;
@@ -249,6 +254,9 @@ fn print_help() {
               workstation-cli --status           Show daemon/runtime status\n\
               workstation-cli --kill             Kill daemon, clients, and managed tab processes\n\
               workstation-cli --update           Update workstation-cli using official installer\n\
+              workstation-cli tools status       Check gentle-ai availability/version\n\
+              workstation-cli tools init         Guided gentle-ai bootstrap (dry-run + apply)\n\
+              workstation-cli tools sync         Re-apply gentle-ai ecosystem sync\n\
               workstation-cli --reset-onboarding Remove saved state to force first-run onboarding\n\
               workstation-cli --version, -v      Show version\n\
               workstation-cli --help, -h, help   Show this help\n",
@@ -299,7 +307,7 @@ fn confirm_cli_update(version: &str) -> bool {
 }
 
 fn run_update_installer() -> Result<()> {
-    let install_cmd = "curl -fsSL https://raw.githubusercontent.com/cxto21/workstation-cli/main/install.sh | bash";
+    let install_cmd = "curl -fsSL https://raw.githubusercontent.com/reflecterlabs/workstation-cli/main/install.sh | bash";
     let status = Command::new("sh")
         .arg("-c")
         .arg(install_cmd)
